@@ -1,42 +1,43 @@
-from sklearn.linear_model import LogisticRegression
+
+from sklearn.linear_model import LinearRegression
 import argparse
 import os
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import joblib
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
+#from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 from azureml.core.run import Run
+from azureml.core.dataset import Dataset
 from azureml.data.dataset_factory import TabularDatasetFactory
 
 
 
 def clean_data(data):
-    # Dict for cleaning data
-    months = {"jan":1, "feb":2, "mar":3, "apr":4, "may":5, "jun":6, "jul":7, "aug":8, "sep":9, "oct":10, "nov":11, "dec":12}
-    weekdays = {"mon":1, "tue":2, "wed":3, "thu":4, "fri":5, "sat":6, "sun":7}
+    
+    x_df = data.to_pandas_dataframe()
+    x_df = x_df.dropna()
 
-    # Clean and one hot encode data
-    x_df = data.to_pandas_dataframe().dropna()
-    jobs = pd.get_dummies(x_df.job, prefix="job")
-    x_df.drop("job", inplace=True, axis=1)
-    x_df = x_df.join(jobs)
-    x_df["marital"] = x_df.marital.apply(lambda s: 1 if s == "married" else 0)
-    x_df["default"] = x_df.default.apply(lambda s: 1 if s == "yes" else 0)
-    x_df["housing"] = x_df.housing.apply(lambda s: 1 if s == "yes" else 0)
-    x_df["loan"] = x_df.loan.apply(lambda s: 1 if s == "yes" else 0)
-    contact = pd.get_dummies(x_df.contact, prefix="contact")
-    x_df.drop("contact", inplace=True, axis=1)
-    x_df = x_df.join(contact)
-    education = pd.get_dummies(x_df.education, prefix="education")
-    x_df.drop("education", inplace=True, axis=1)
-    x_df = x_df.join(education)
-    x_df["month"] = x_df.month.map(months)
-    x_df["day_of_week"] = x_df.day_of_week.map(weekdays)
-    x_df["poutcome"] = x_df.poutcome.apply(lambda s: 1 if s == "success" else 0)
-
-    y_df = x_df.pop("y").apply(lambda s: 1 if s == "yes" else 0)
+    #clean data
+    x_df['MSSubClass'] = x_df['MSSubClass'].astype(str)
+    x_df['YrSold'] = x_df['YrSold'].astype(str)
+    x_df['MoSold'] = x_df['MoSold'].astype(str)
+    x_df['YearBuilt'] = x_df['YearBuilt'].astype(str)
+    x_df['YearRemodAdd'] = x_df['YearRemodAdd'].astype(str)
+    # One hot encode data   
+    #https://stackoverflow.com/questions/37292872/how-can-i-one-hot-encode-in-python 
+    def encode_data(dataframe, feature_to_encode):
+        dummies = pd.get_dummies(dataframe[[feature_to_encode]])
+        new_df = pd.concat([dataframe,dummies], axis=1)
+        new_df = new_df.drop([feature_to_encode], axis=1)
+        return(new_df)
+    
+    features_to_encode =[]
+    for feature in features_to_encode:
+        new_df = encode_data(x_df, feature)
+    x_df = new_df
+    y_df = x_df.pop("SalePrice")
 
     return x_df, y_df
 
@@ -44,40 +45,42 @@ def main():
     # Add arguments to script
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--C', type=float, default=1.0, help="Inverse of regularization strength. Smaller values cause stronger regularization")
-    parser.add_argument('--max_iter', type=int, default=100, help="Maximum number of iterations to converge")
-
+    parser.add_argument('--C', type=int, default=100, help="")
+    parser.add_argument('--penalty', type=int, default=2, help="")
     args = parser.parse_args()
 
     run = Run.get_context()
+    workspace = run.experiment.workspace
+    run.log("C:", np.int(args.C))
+    run.log("Penalty:", np.int(args.penalty))
 
-    run.log("Regularization Strength:", np.float(args.C))
-    run.log("Max iterations:", np.int(args.max_iter))
-
-    # TODO: Create TabularDataset using TabularDatasetFactory
-    # Data is located at:
-    # "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
-
-    #ds = ### YOUR CODE HERE ###
-    ds = TabularDatasetFactory.from_delimited_files(path = 
-    "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv")
     
-    x, y = clean_data(ds)
+    #The dataset is registered using Python SDK in the notebook
+    dataset_name = 'Housing Dataset'
 
+    # Get a dataset by name
+    ds = Dataset.get_by_name(workspace=workspace, name=dataset_name)
+    
     # TODO: Split data into train and test sets.
 
-    ### YOUR CODE HERE ###a
+    ### YOUR CODE HERE ###
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size =0.2, random_state=223)
 
-    model = LogisticRegression(C=args.C, max_iter=args.max_iter).fit(x_train, y_train)
+    model = LinearRegression(C=args.C, penalty=args.penalty).fit(x_train, y_train)
 
-    accuracy = model.score(x_test, y_test)
+    #accuracy = model.score(x_test, y_test)
 
-    run.log("Accuracy", np.float(accuracy)) 
+    run.log("Accuracy", np.float(accuracy))
+    #save the best model
     os.makedirs('outputs', exist_ok = True)
-
     
+    import joblib
     joblib.dump(value = model, filename= 'outputs/model.joblib')
 
 if __name__ == '__main__':
     main()
+© 2021 GitHub, Inc.
+
+
+
+
