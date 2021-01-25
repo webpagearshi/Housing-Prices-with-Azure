@@ -34,7 +34,13 @@ def clean_data(data):
         new_df = new_df.drop([feature_to_encode], axis=1)
         return(new_df)
     
-    features_to_encode =[]
+    features_to_encode =['MSSubClass','MSZoning','Street','LotShape',
+    'LandContour','Utilities','LotConfig','LandSlope','Neighborhood','Condition1','Condition2',
+    'BldgType','HouseStyle','YearBuilt','YearRemodAdd','RoofStyle','RoofMatl','Exterior1st',
+    'Exterior2nd','MasVnrType','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond',
+    'Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','GarageType',
+    'GarageYrBlt','GarageFinish','GarageQual','GarageCond','PavedDrive','MoSold','YrSold',
+    'SaleType','SaleCondition']
     for feature in features_to_encode:
         new_df = encode_data(x_df, feature)
     x_df = new_df
