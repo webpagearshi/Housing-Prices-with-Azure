@@ -1,9 +1,9 @@
-
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Lasso
 import argparse
 import os
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from math import sqrt
 import joblib
 from sklearn.model_selection import train_test_split
 #from sklearn.preprocessing import OneHotEncoder
@@ -33,7 +33,13 @@ def clean_data(data):
         new_df = new_df.drop([feature_to_encode], axis=1)
         return(new_df)
     
-    features_to_encode =[]
+    features_to_encode =['MSSubClass','MSZoning','Street','LotShape',
+    'LandContour','Utilities','LotConfig','LandSlope','Neighborhood','Condition1','Condition2',
+    'BldgType','HouseStyle','YearBuilt','YearRemodAdd','RoofStyle','RoofMatl','Exterior1st',
+    'Exterior2nd','MasVnrType','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond',
+    'Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','GarageType',
+    'GarageYrBlt','GarageFinish','GarageQual','GarageCond','PavedDrive','MoSold','YrSold',
+    'SaleType','SaleCondition']
     for feature in features_to_encode:
         new_df = encode_data(x_df, feature)
     x_df = new_df
@@ -45,14 +51,14 @@ def main():
     # Add arguments to script
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--C', type=int, default=100, help="")
-    parser.add_argument('--penalty', type=int, default=2, help="")
+    parser.add_argument('--alpha', type=float, default=1.0, help="")
+    parser.add_argument('--max_iter', type=int, default=1000, help="The maximum number of iterations")
     args = parser.parse_args()
 
     run = Run.get_context()
     workspace = run.experiment.workspace
-    run.log("C:", np.int(args.C))
-    run.log("Penalty:", np.int(args.penalty))
+    run.log("Alpha:", np.float(args.alpha))
+    run.log("Maximum Iteration:", np.int(args.max_iter))
 
     
     #The dataset is registered using Python SDK in the notebook
@@ -60,17 +66,19 @@ def main():
 
     # Get a dataset by name
     ds = Dataset.get_by_name(workspace=workspace, name=dataset_name)
-    
+    x,y = clean_data(ds)
     # TODO: Split data into train and test sets.
 
     ### YOUR CODE HERE ###
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size =0.2, random_state=223)
 
-    model = LinearRegression(C=args.C, penalty=args.penalty).fit(x_train, y_train)
+    model = Lasso(alpha=args.alpha, max_iter=args.max_iter).fit(x_train, y_train)
+    y_predict = model.predict(x_test)
+    #calculate the root mean squared error
+    y_actual = y_test.values.flatten().tolist()
+    mse = mean_squared_error(y_actual,y_predict)
 
-    #accuracy = model.score(x_test, y_test)
-
-    run.log("Accuracy", np.float(accuracy))
+    run.log("RMSE", np.sqrt(mse))
     #save the best model
     os.makedirs('outputs', exist_ok = True)
     
@@ -79,7 +87,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-© 2021 GitHub, Inc.
 
 
 
