@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+
+=======
+>>>>>>> cade7b521588a378950e4e1f05aed534b6356130
 from sklearn.linear_model import Lasso
 import argparse
 import os
@@ -6,7 +10,6 @@ from sklearn.metrics import mean_squared_error
 from math import sqrt
 import joblib
 from sklearn.model_selection import train_test_split
-#from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 from azureml.core.run import Run
 from azureml.core.dataset import Dataset
@@ -25,14 +28,11 @@ def clean_data(data):
     x_df['MoSold'] = x_df['MoSold'].astype(str)
     x_df['YearBuilt'] = x_df['YearBuilt'].astype(str)
     x_df['YearRemodAdd'] = x_df['YearRemodAdd'].astype(str)
-    # One hot encode data   
-    #https://stackoverflow.com/questions/37292872/how-can-i-one-hot-encode-in-python 
-    def encode_data(dataframe, feature_to_encode):
-        dummies = pd.get_dummies(dataframe[[feature_to_encode]])
-        new_df = pd.concat([dataframe,dummies], axis=1)
-        new_df = new_df.drop([feature_to_encode], axis=1)
-        return(new_df)
     
+<<<<<<< HEAD
+    # One hot encode data   
+=======
+>>>>>>> cade7b521588a378950e4e1f05aed534b6356130
     features_to_encode =['MSSubClass','MSZoning','Street','LotShape',
     'LandContour','Utilities','LotConfig','LandSlope','Neighborhood','Condition1','Condition2',
     'BldgType','HouseStyle','YearBuilt','YearRemodAdd','RoofStyle','RoofMatl','Exterior1st',
@@ -40,8 +40,12 @@ def clean_data(data):
     'Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','GarageType',
     'GarageYrBlt','GarageFinish','GarageQual','GarageCond','PavedDrive','MoSold','YrSold',
     'SaleType','SaleCondition']
+<<<<<<< HEAD
+    new_df = pd.get_dummies(x_df, columns=features_to_encode)
+=======
     for feature in features_to_encode:
         new_df = encode_data(x_df, feature)
+>>>>>>> cade7b521588a378950e4e1f05aed534b6356130
     x_df = new_df
     y_df = x_df.pop("SalePrice")
 
