@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> cade7b521588a378950e4e1f05aed534b6356130
 from sklearn.linear_model import Lasso
 import argparse
 import os
@@ -29,10 +25,7 @@ def clean_data(data):
     x_df['YearBuilt'] = x_df['YearBuilt'].astype(str)
     x_df['YearRemodAdd'] = x_df['YearRemodAdd'].astype(str)
     
-<<<<<<< HEAD
     # One hot encode data   
-=======
->>>>>>> cade7b521588a378950e4e1f05aed534b6356130
     features_to_encode =['MSSubClass','MSZoning','Street','LotShape',
     'LandContour','Utilities','LotConfig','LandSlope','Neighborhood','Condition1','Condition2',
     'BldgType','HouseStyle','YearBuilt','YearRemodAdd','RoofStyle','RoofMatl','Exterior1st',
@@ -40,12 +33,8 @@ def clean_data(data):
     'Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','GarageType',
     'GarageYrBlt','GarageFinish','GarageQual','GarageCond','PavedDrive','MoSold','YrSold',
     'SaleType','SaleCondition']
-<<<<<<< HEAD
+
     new_df = pd.get_dummies(x_df, columns=features_to_encode)
-=======
-    for feature in features_to_encode:
-        new_df = encode_data(x_df, feature)
->>>>>>> cade7b521588a378950e4e1f05aed534b6356130
     x_df = new_df
     y_df = x_df.pop("SalePrice")
 
@@ -79,10 +68,10 @@ def main():
     model = Lasso(alpha=args.alpha, max_iter=args.max_iter).fit(x_train, y_train)
     y_predict = model.predict(x_test)
     #calculate the root mean squared error
-    y_actual = y_test.values.flatten().tolist()
-    mse = mean_squared_error(y_actual,y_predict)
+    #y_actual = y_test.values.flatten().tolist()
+    rmse = sqrt(mean_squared_error(y_test,y_predict))
 
-    run.log("RMSE", np.sqrt(mse))
+    run.log("root_mean_squared_error", np.float(rmse))
     #save the best model
     os.makedirs('outputs', exist_ok = True)
     
